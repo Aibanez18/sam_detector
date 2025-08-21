@@ -21,11 +21,10 @@ def extract_regions_from_image(mask_generator, image_path):
     if image is None:
         print(f"Error: Could not load image {image_path}")
         return []
-    
-    # Crop the image to the left half (from 0 to width/2)
-    _ , width = image.shape[:2]
-    image = image[:, :width // 2]
-    
+
+    height, width = image.shape[:2]
+    image_area = height * width
+
     # Convert BGR to RGB for SAM
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
@@ -46,7 +45,12 @@ def extract_regions_from_image(mask_generator, image_path):
             'height': int(bbox[3]),
             'area': int(mask_data['area'])
         }
-        
+        region_ratio = region_info['width'] / region_info['height'] if region_info['height'] > 0 else 0
+        if region_ratio >= 10 or region_ratio <= 0.1:
+            continue
+        if region_info['area'] > image_area//6:
+            continue
+
         regions.append(region_info)
     
     return regions
@@ -111,27 +115,6 @@ def save_results(results, output_file):
     json_file = output_path.with_suffix('.json')
     with open(json_file, 'w') as f:
         json.dump(results, f, indent=2)
-    
-    # Save as human-readable text
-    txt_file = output_path.with_suffix('.txt')
-    with open(txt_file, 'w') as f:
-        f.write("SAM2 Object Detection Results\n")
-        f.write("=" * 50 + "\n\n")
-        
-        for image_name, data in results.items():
-            f.write(f"Image: {image_name}\n")
-            f.write(f"Path: {data['image_path']}\n")
-            f.write(f"Number of regions: {data['num_regions']}\n")
-            f.write("-" * 30 + "\n")
-            
-            for region in data['regions']:
-                f.write(f"Region {region['region_id']}:\n")
-                f.write(f"  x: {region['x']}, y: {region['y']}\n")
-                f.write(f"  width: {region['width']}, height: {region['height']}\n")
-                f.write(f"  area: {region['area']}\n")
-                f.write("\n")
-            
-            f.write("\n" + "=" * 50 + "\n\n")
 
 def main():
     """
@@ -145,22 +128,22 @@ def main():
         print(f"GPU name: {torch.cuda.get_device_name(0)}")
         print(f"GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
 
-    checkpoint_path = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\checkpoints\\sam_vit_b_01ec64.pth"
+    checkpoint_path = "checkpoints/sam_vit_b_01ec64.pth"
     sam = sam_model_registry["vit_b"](checkpoint=checkpoint_path)
     mask_generator = SamAutomaticMaskGenerator(
         model=sam,
-        points_per_side=32,  # Reduce from default 32
-        points_per_batch=32,  # Reduce from default 64
-        pred_iou_thresh=0.85,  # Increase to filter out low-quality masks
-        stability_score_thresh=0.9,  # Increase to filter out unstable masks
-        crop_n_layers=0,  # Disable cropping for speed
+        points_per_side=64,
+        points_per_batch=64,
+        pred_iou_thresh=0.70,
+        stability_score_thresh=0.9,
+        crop_n_layers=1,
         crop_n_points_downscale_factor=1,
-        min_mask_region_area=500,  # Increase to ignore tiny regions
+        min_mask_region_area=500,
     )
     
     # Process all images in a folder
 
-    input_folder = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\flat_textures"  # Change this to your image folder
+    input_folder = "sam_detector/flat_images"  # Change this to your image folder
     output_file = "detected_regions"  # Will create .json and .txt files
     process_image_folder(mask_generator, input_folder, output_file)
 
