@@ -29,8 +29,12 @@ def extract_regions_from_image(mask_generator, image_path):
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
     # Generate masks
-    masks = mask_generator.generate(image_rgb)
-    
+    try:
+        masks = mask_generator.generate(image)
+    except Exception as e:
+        print(f"Failed to process {image_path}: {e}")
+        return []  # Skip to next image
+
     regions = []
     for i, mask_data in enumerate(masks):
         # Get bounding box from mask
@@ -45,8 +49,10 @@ def extract_regions_from_image(mask_generator, image_path):
             'height': int(bbox[3]),
             'area': int(mask_data['area'])
         }
-        region_ratio = region_info['width'] / region_info['height'] if region_info['height'] > 0 else 0
-        if region_ratio >= 10 or region_ratio <= 0.1:
+        if region_info['width'] < 16 or region_info['height'] < 16:
+            continue
+        region_ratio = region_info['width'] / region_info['height']
+        if region_ratio >= 8 or region_ratio <= 0.125:
             continue
         if region_info['area'] > image_area//6:
             continue
@@ -127,9 +133,11 @@ def main():
     if torch.cuda.is_available():
         print(f"GPU name: {torch.cuda.get_device_name(0)}")
         print(f"GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     checkpoint_path = "checkpoints/sam_vit_b_01ec64.pth"
     sam = sam_model_registry["vit_b"](checkpoint=checkpoint_path)
+    sam.cuda()
     mask_generator = SamAutomaticMaskGenerator(
         model=sam,
         points_per_side=64,
@@ -143,8 +151,8 @@ def main():
     
     # Process all images in a folder
 
-    input_folder = "sam_detector/flat_images"  # Change this to your image folder
-    output_file = "detected_regions"  # Will create .json and .txt files
+    input_folder = "flat_images/"  # Change this to your image folder
+    output_file = "detected_regions/"  # Will create .json and .txt files
     process_image_folder(mask_generator, input_folder, output_file)
 
 if __name__ == "__main__":

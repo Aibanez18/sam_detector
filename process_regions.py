@@ -24,7 +24,7 @@ class RegionProcessor:
         else:
             self.device = torch.device(device)
         
-        print(f"Loading DINOv2 model: {model_name} on {self.device}")
+        print(f"Loading model: {model_name} on {self.device}")
         
         # Load model
         self.model_name = model_name
