@@ -30,4 +30,4 @@ def collect_pngs_and_save(root_dir, output_dir="data", pkl_name="file_paths.pkl"
     print(f"Copied {len(saved_paths)} PNG files to '{output_dir}' and saved paths to '{pkl_name}'")
 
 # Example usage:
-collect_pngs_and_save("dino_output", "data", "file_paths.pkl")
+collect_pngs_and_save("sam_output", "data", "file_paths.pkl")

@@ -30,7 +30,8 @@ def extract_regions_from_image(mask_generator, image_path):
     
     # Generate masks
     try:
-        masks = mask_generator.generate(image)
+        with torch.cuda.device("cuda"):
+            masks = mask_generator.generate(image_rgb)
     except Exception as e:
         print(f"Failed to process {image_path}: {e}")
         return []  # Skip to next image
@@ -88,6 +89,9 @@ def process_image_folder(mask_generator,input_folder, output_file, image_extensi
         print(f"Processing {i+1}/{len(image_files)}: {image_path.name}")
         
         regions = extract_regions_from_image(mask_generator, str(image_path))
+
+        torch.cuda.empty_cache()
+        gc.collect()
         
         if regions:
             all_results[str(image_path.name)] = {
@@ -140,8 +144,8 @@ def main():
     sam.cuda()
     mask_generator = SamAutomaticMaskGenerator(
         model=sam,
-        points_per_side=64,
-        points_per_batch=64,
+        points_per_side=48,
+        points_per_batch=48,
         pred_iou_thresh=0.70,
         stability_score_thresh=0.9,
         crop_n_layers=1,
@@ -152,7 +156,7 @@ def main():
     # Process all images in a folder
 
     input_folder = "flat_images/"  # Change this to your image folder
-    output_file = "detected_regions/"  # Will create .json and .txt files
+    output_file = "detected_regions"  # Will create .json and .txt files
     process_image_folder(mask_generator, input_folder, output_file)
 
 if __name__ == "__main__":

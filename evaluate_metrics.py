@@ -110,21 +110,21 @@ class PatternBasedEncoderEvaluator:
         
         # Add DINO extractor
         try:
-            extractors['dino_v2'] = self.create_extractor('dinov2')
+            #extractors['dino_v2'] = self.create_extractor('dinov2')
             print("✓ DINO v2 encoder loaded")
         except Exception as e:
             print(f"✗ Could not load DINO v2: {e}")
         
         # Add CLIP extractors
         try:
-            extractors['clip_vit_l14'] = self.create_extractor('clip')
+            #extractors['clip_vit_l14'] = self.create_extractor('clip')
             print("✓ CLIP encoders loaded")
         except Exception as e:
             print(f"✗ Could not load CLIP: {e}")
 
         # Add ResNet extractors
         try:
-            extractors['resnet50'] = self.create_extractor('resnet50')
+            #extractors['resnet50'] = self.create_extractor('resnet50')
             print("✓ ResNet50 encoder loaded")
         except Exception as e:
             print(f"✗ Could not load ResNet50: {e}")
@@ -132,8 +132,11 @@ class PatternBasedEncoderEvaluator:
         # Add iBOT extractors
         try:
             extractors['idoc_base'] = self.create_extractor('idoc_teacher')
-            extractors['ibot_scratch_horae'] = self.create_extractor('ibot_scratch_horae_teacher')
-            extractors['ibot_horae_lora_7e-3_30'] = self.create_extractor('ibot_horae_lora_7e-3_30')
+            #extractors['ibot_scratch_horae'] = self.create_extractor('ibot_scratch_horae_teacher')
+            #extractors['ibot_horae_lora_7e-3_30'] = self.create_extractor('ibot_horae_lora_7e-3_30')
+            extractors['idoc_lora_7e-3_15'] = self.create_extractor('idoc_lora_7e-3_15')
+            extractors['idoc_lora_7e-3_30'] = self.create_extractor('idoc_lora_7e-3_30')
+            extractors['idoc_lora_7e-3_45'] = self.create_extractor('idoc_lora_7e-3_45')
             print("✓ iBOT encoders loaded")
         except Exception as e:
             print(f"✗ Could not load iBOT: {e}")
@@ -143,7 +146,7 @@ class PatternBasedEncoderEvaluator:
 
     def create_extractor(self, model_name=None):
         """Create feature extractor for specified model"""
-        output_path = Path("D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\annotated_output")
+        output_path = Path("annotated_output/")
 
         if model_name:
             with open(output_path / f"all_features_{model_name}.pkl", "rb") as f:
@@ -351,8 +354,8 @@ def main_pattern_evaluation():
     """Main function to run pattern-based evaluation"""
     
     # Update this path to point to your all_features.pkl file that contains pattern_ids
-    ALL_REGIONS_DATA = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\annotated_output\\all_features_dinov2.pkl"
-    IMAGES_DIR = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\flat_images"
+    ALL_REGIONS_DATA = "annotated_output/all_features_idoc_teacher.pkl"
+    IMAGES_DIR = "flat_images/"
     
     # Set random seed for reproducible results
     random.seed()
@@ -361,7 +364,7 @@ def main_pattern_evaluation():
     evaluator = PatternBasedEncoderEvaluator(
         all_regions_data=ALL_REGIONS_DATA,
         images_dir=IMAGES_DIR,
-        num_queries=80  # Same as your manual evaluation
+        num_queries=100  # Same as your manual evaluation
     )
     
     # Analyze dataset patterns

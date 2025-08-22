@@ -68,33 +68,33 @@ class EnhancedSparseEncoderEvaluator:
         
         # Add DINO extractor if you have it
         try:
-            extractors['dino_v2'] = self.create_extractor('dino_output')
+            #extractors['dino_v2'] = self.create_extractor('dino_output')
             print("✓ DINO v2 encoder loaded")
         except Exception as e:
             print(f"✗ Could not load DINO v2: {e}")
         
         # Add CLIP extractors
         try:
-            extractors['clip_vit_l14'] = self.create_extractor('clip_output')
+            #extractors['clip_vit_l14'] = self.create_extractor('clip_output')
             print("✓ CLIP encoders loaded")
         except Exception as e:
             print(f"✗ Could not load CLIP: {e}")
 
         # Add ResNet extractors
         try:
-            extractors['resnet50'] = self.create_extractor('resnet50_output')
+            #extractors['resnet50'] = self.create_extractor('resnet50_output')
             print("✓ ResNet50 encoder loaded")
         except Exception as e:
             print(f"✗ Could not load ResNet50: {e}")
 
         # Add LoRA extractors
         try:
-            extractors['ibot_lora_idoc'] = self.create_extractor('lora_output','ibot_lora_idoc')
-            extractors['ibot_scratch_horae'] = self.create_extractor('lora_output','ibot_scratch_horae')
-            extractors['ibot_horae_lora_7e-3_15'] = self.create_extractor('lora_output','ibot_horae_lora_7e-3_15')
-            extractors['ibot_horae_lora_7e-3_30'] = self.create_extractor('lora_output','ibot_horae_lora_7e-3_30')
-            extractors['ibot_horae_lora_7e-3_45'] = self.create_extractor('lora_output','ibot_horae_lora_7e-3_45')
-            #extractors['ibot_horae_lora_1e-3_75'] = self.create_extractor('lora_output','ibot_horae_lora_1e-3_75')
+            extractors['idoc_base'] = self.create_extractor('idoc_teacher')
+            #extractors['ibot_scratch_horae'] = self.create_extractor('ibot_scratch_horae_teacher')
+            #extractors['ibot_horae_lora_7e-3_30'] = self.create_extractor('ibot_horae_lora_7e-3_30')
+            extractors['idoc_lora_7e-3_15'] = self.create_extractor('idoc_lora_7e-3_15')
+            extractors['idoc_lora_7e-3_30'] = self.create_extractor('idoc_lora_7e-3_30')
+            extractors['idoc_lora_7e-3_45'] = self.create_extractor('idoc_lora_7e-3_45')
 
             print("✓ LoRA encoders loaded")
         except Exception as e:
@@ -103,9 +103,9 @@ class EnhancedSparseEncoderEvaluator:
         print(f"Total encoders available: {len(extractors)}")
         return extractors
 
-    def create_extractor(self, path, model_name = None):
+    def create_extractor(self, model_name = None):
         """Create LoRA-based feature extractor"""
-        output_path = Path(f"D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\{path}")
+        output_path = Path(f"sam_detector/")
 
         if model_name:
             with open(output_path / f"all_features_{model_name}.pkl", "rb") as f:
@@ -326,10 +326,10 @@ class EnhancedSparseEncoderEvaluator:
 def main_enhanced_evaluation():
     """Main function to run the enhanced evaluation"""
     
-    LABELED_DATA_DIR = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\similarity_csv"
-    ALL_REGIONS_DATA = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\dino_output\\all_features.pkl"
-    IMAGES_DIR = "D:\\Universidad\\Proyecto de Titulo\\sam-dino_detector\\flat_textures"
-    
+    LABELED_DATA_DIR = "sam-dino_detector/similarity_csv"
+    ALL_REGIONS_DATA = "sam-dino_detector/sam_output/all_features_resnet50.pkl"
+    IMAGES_DIR = "sam-dino_detector/flat_images"
+
     # Initialize evaluator
     evaluator = EnhancedSparseEncoderEvaluator(
         labeled_data_dir=LABELED_DATA_DIR,
