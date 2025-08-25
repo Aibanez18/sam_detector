@@ -52,6 +52,17 @@ class RegionProcessor:
             self.model, self.preprocess = clip.load("ViT-L/14", device=self.device)
             self.model.eval().to(self.device)
             self.feature_dim = 512
+
+        else:
+            from models.vit_lora import vit_lora
+            checkpoint_path = f"checkpoints/{model_name}.pth"
+            self.model = vit_lora(ckpt_path=checkpoint_path).to(self.device)              
+            self.model.eval().to(self.device)
+            self.feature_dim = 768
+            self.transform = T.Compose([
+                T.ToTensor(),
+                T.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            ])
         
         print(f"Model loaded successfully. Feature dimension: {self.feature_dim}")
     
@@ -312,7 +323,7 @@ class RegionProcessor:
                 results['regions'].append(region_result)
                 results['features_shape'] = features.shape
                 
-                if (i + 1) % 10 == 0:
+                if (i + 1) % 100 == 0:
                     print(f"Processed {i + 1}/{len(regions_data)} regions")
 
             except Exception as e:
@@ -347,7 +358,7 @@ def process_all_images(image_folder: str,
         json_path=json_path,
         output_dir=output_dir,
         thumbnail_size=(224, 224),
-        save_thumbnails=True
+        save_thumbnails=False
     )
     
     return results
@@ -364,7 +375,7 @@ if __name__ == "__main__":
         image_folder=image_folder,
         json_path=json_path,
         output_dir=output_dir,
-        model_name="resnet50"
+        model_name="clip"
     )
     
     print(f"Processed {len(all_results['processed_images'])} images")
